@@ -6,7 +6,7 @@ function checkParameters {
       virtuChecked=0
       while read ligne
       do
-        if [[ "$ligne" == "$3" ]]; then
+        if [[ $ligne == $3 ]]; then
           virtuChecked=1
           echo "Machine $3 identifiée"
         fi
@@ -15,19 +15,17 @@ function checkParameters {
         echo "La machine spécifiée n'existe pas."
       fi
     fi
-  elif [[ $1 -eq 1 && $1 ==  '-admin' ]]; then
+  elif [[ $1 -eq 1 && $2 ==  '-admin' ]]; then
     enteredPassword=0
-    password= $(cat testpassword.txt)
-    ssty -echo
-    read -p "Password for rvsh admin : " enteredPassword
-    ssty echo
+    password=$(cat testpassword.txt)
+    read -s -p "Password for rvsh admin : " enteredPassword
     if [[ $enteredPassword == $password ]]; then
       echo "Mot de passe valide"
     else
       echo "Mot de passe érroné"
     fi
   else
-    echo "Mauvaise utilisation de la commande"
+    echo "Mauvaise utilisation de la commande. Tapez 'rvsh help' pour plus d'informations"
   fi
 
 }
@@ -36,5 +34,5 @@ function rvsh {
   checkParameters $# $1 $2 $3
 }
 
-rvsh "$@"
+rvsh $@
 exit 0

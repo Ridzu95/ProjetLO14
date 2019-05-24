@@ -1,5 +1,40 @@
-#! /bin/bash
-#enooooorme
-#aaaaaaaaa
-echo eee ze parti
-#bbbbbbbbbbb
+#!/bin/bash
+
+function checkParameters {
+  if [[ $1 -eq 3 ]]; then
+    if [[ $2 == '-connect' ]]; then
+      virtuChecked=0
+      while read ligne
+      do
+        if [[ "$ligne" == "$3" ]]; then
+          virtuChecked=1
+          echo "Machine $3 identifiée"
+        fi
+      done < virtu.txt
+      if [[ $virtuChecked == 0 ]]; then
+        echo "La machine spécifiée n'existe pas."
+      fi
+    fi
+  elif [[ $1 -eq 1 && $1 ==  '-admin' ]]; then
+    enteredPassword=0
+    password= $(cat testpassword.txt)
+    ssty -echo
+    read -p "Password for rvsh admin : " enteredPassword
+    ssty echo
+    if [[ $enteredPassword == $password ]]; then
+      echo "Mot de passe valide"
+    else
+      echo "Mot de passe érroné"
+    fi
+  else
+    echo "Mauvaise utilisation de la commande"
+  fi
+
+}
+
+function rvsh {
+  checkParameters $# $1 $2 $3
+}
+
+rvsh "$@"
+exit 0

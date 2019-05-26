@@ -1,1 +1,2 @@
-ridzu:virtual1
+ridzu:virtual1:abcd
+agnou:virtual2

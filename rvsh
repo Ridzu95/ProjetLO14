@@ -4,26 +4,22 @@ function checkParameters {
   if [[ $1 -eq 3 ]]; then
     if [[ $2 == '-connect' ]]; then
       virtuChecked=0
-      while read ligne
-      do
-        if [[ $ligne == $3 ]]; then
-          virtuChecked=1
-          echo "Machine $3 identifiée"
-        fi
-      done < virtu.txt
-      if [[ $virtuChecked == 0 ]]; then
-        echo "La machine spécifiée n'existe pas."
-      fi
-      if [[ $4 == $(awk -F: '{print $1}' users.txt) ]]; then
-        echo "Utilisateur $4 identifié"
-        if [[ $3 == $(grep $4 users.txt | grep -o $3) ]];then
-          echo "L'utilisateur $4 a bien accès à la machine $3."
-          parametersOk=1
+      if [[ $3 == $(grep -o $3 virtu.txt) ]];then
+        virtuChecked=1
+        echo "Machine $3 identifiée"
+        if [[ $4 == $(awk -F: '{print $1}' users.txt | grep -o $4) ]]; then
+          echo "Utilisateur $4 identifié"
+          if [[ $3 == $(grep $4 users.txt | grep -o $3) ]];then
+            echo "L'utilisateur $4 a bien accès à la machine $3."
+            parametersOk=1
+          else
+            echo "L'utilisateur $4 n'a pas accès à la machine $3."
+          fi
         else
-          echo "L'utilisateur $4 n'a pas accès à la machine $3."
+          echo "Utilisateur non identifié"
         fi
       else
-        echo "Utilisateur non identifié"
+        echo "Machine $3 non identifiée"
       fi
     fi
   elif [[ $1 -eq 1 && $2 ==  '-admin' ]]; then

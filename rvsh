@@ -14,6 +14,17 @@ function checkParameters {
       if [[ $virtuChecked == 0 ]]; then
         echo "La machine spécifiée n'existe pas."
       fi
+      if [[ $4 == $(awk -F: '{print $1}' users.txt) ]]; then
+        echo "Utilisateur $4 identifié"
+        if [[ $3 == $(grep $4 users.txt | grep -o $3) ]];then
+          echo "L'utilisateur $4 a bien accès à la machine $3."
+          parametersOk=1
+        else
+          echo "L'utilisateur $4 n'a pas accès à la machine $3."
+        fi
+      else
+        echo "Utilisateur non identifié"
+      fi
     fi
   elif [[ $1 -eq 1 && $2 ==  '-admin' ]]; then
     enteredPassword=0
@@ -21,13 +32,21 @@ function checkParameters {
     read -s -p "Password for rvsh admin : " enteredPassword
     if [[ $enteredPassword == $password ]]; then
       echo "Mot de passe valide"
+      parametersOk=1
     else
       echo "Mot de passe érroné"
     fi
+  elif [[ $1 -eq 1 && $2 == 'help' ]]; then
+    echo "
+    Deux utilisations :
+
+    Mode connect : vous permet de vous connecter à une machine du réseau virtuel --> rvsh -connect [machine] [utilisateur]
+    Mode admin : vous permet d'éditer la configuration du réseau virtuel --> rvsh -admin
+    "
+    
   else
     echo "Mauvaise utilisation de la commande. Tapez 'rvsh help' pour plus d'informations"
   fi
-
 }
 
 function rvsh {

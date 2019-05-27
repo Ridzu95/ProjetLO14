@@ -24,9 +24,9 @@ function checkParameters {
     fi
   elif [[ $1 -eq 1 && $2 ==  '-admin' ]]; then
     enteredPassword=0
-    password=$(cat testpassword.txt)
+    password=$(cat admin.txt)
     read -s -p "Password for rvsh admin : " enteredPassword
-    if [[ $enteredPassword == $password ]]; then
+    if [[ $(echo $enteredPassword | sha512sum | cut -d' ' -f1) == $password ]]; then
       echo "Mot de passe valide"
       parametersOk=1
     else
@@ -45,8 +45,31 @@ function checkParameters {
   fi
 }
 
+function adminPrompt {
+  read -p "rvsh > " userInput
+  case $userInput in
+    
+  esac
+}
+
+function connectPrompt {
+  read -p "$2@$1 > " userInput 
+  case $userInput in
+    
+  esac
+}
+
+
 function rvsh {
   checkParameters $# $1 $2 $3
+  if [[ $parametersOk == 1 ]]; then
+    clear
+    if [[ $1 == "-admin" ]]; then
+      adminPrompt
+    else
+      connectPrompt $2 $3
+    fi
+  fi
 }
 
 rvsh $@

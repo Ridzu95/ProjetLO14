@@ -48,17 +48,35 @@ function checkParameters {
 function adminPrompt {
   read -p "rvsh > " userInput
   case $userInput in
-    
+
   esac
 }
 
 function connectPrompt {
   read -p "$2@$1 > " userInput 
   case $userInput in
-    
+    "") connectPrompt $1 $2 ;;
+    "disconnect") disconnectCommand ;;
+    *) helpCommand $1 $2 ;;
   esac
 }
 
+function helpCommand {
+  echo "
+  Commandes à votre disposition sur cette machine :
+  
+  who : Cette commande permet d’accéder à l’ensemble des utilisateurs connectés sur la machine.
+  rusers : Cette commande permet d’accéder à la liste des utilisateurs connectés sur le réseau.
+  rhost : Cette commande doit renvoyer la liste des machines rattachées à la machine. 
+  ...
+  "
+  connectPrompt $1 $2
+}
+
+function disconnectCommand {
+  echo "Déconnexion de la machine"
+  clear
+}
 
 function rvsh {
   checkParameters $# $1 $2 $3

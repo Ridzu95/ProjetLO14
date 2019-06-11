@@ -85,7 +85,10 @@ function adminPrompt {
 function connectPrompt {
   trap "" 2
   trap "" 20
-  read -p "$2@$1 > " userInput 
+  RESET="\033[0m"
+  BOLD="\033[1m"
+  YELLOW="\033[38;5;11m"
+  read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput 
   case $userInput in
     "") connectPrompt $1 $2 ;;
     "who") whoCommand $1 $2 ;;
@@ -143,7 +146,7 @@ function helpCommand {
   who : Cette commande permet d’accéder à l’ensemble des utilisateurs connectés sur la machine.
   rusers : Cette commande permet d’accéder à la liste des utilisateurs connectés sur le réseau.
   rhost : Cette commande doit renvoyer la liste des machines rattachées à la machine. 
-  ...
+  connect : Cette commande permet à l’utilisateur de se connecter à une autre machine du réseau
   "
   connectPrompt $1 $2
 }

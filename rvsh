@@ -45,6 +45,19 @@ function checkParameters {
   fi
 }
 
+function createMachineLog {
+  if [[ ! -f $1 ]]; then
+    touch $1.txt
+  fi
+  currentTerminal=$(tty)
+  timeLog=$(date | cut -d' ' -f-4)
+  echo "$2,$currentTerminal,$timeLog" >> $1.txt
+}
+
+function deleteMachineLog {
+  sed -e 's;$1,$currentTerminal,.*$;;g' $1.txt
+}
+
 function adminPrompt {
   read -p "rvsh > " userInput
   case $userInput in
@@ -53,12 +66,21 @@ function adminPrompt {
 }
 
 function connectPrompt {
+  trap "" 2
+  trap "" 20
   read -p "$2@$1 > " userInput 
   case $userInput in
     "") connectPrompt $1 $2 ;;
-    "disconnect") disconnectCommand ;;
+    "who") whoCommand $1 $2 ;;
+    "disconnect") disconnectCommand $1 $2;;
     *) helpCommand $1 $2 ;;
   esac
+}
+
+function whoCommand {
+  echo "Utilisateurs connectés sur la machine $1 :"
+  awk -F, '{print $1," is connected from ",$2," since ",$3}' $1.txt
+  connectPrompt $1 $2
 }
 
 function helpCommand {
@@ -75,6 +97,7 @@ function helpCommand {
 
 function disconnectCommand {
   echo "Déconnexion de la machine"
+  deleteMachineLog $1 $2
   clear
 }
 
@@ -85,6 +108,7 @@ function rvsh {
     if [[ $1 == "-admin" ]]; then
       adminPrompt
     else
+      createMachineLog $2 $3
       connectPrompt $2 $3
     fi
   fi

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function checkParameters {
+  parametersOk=0
   if [[ $1 -eq 3 ]]; then
     if [[ $2 == '-connect' ]]; then
       virtuChecked=0
@@ -45,6 +46,16 @@ function checkParameters {
   fi
 }
 
+function checkNetwork {
+  networkOk=0
+  if [[ $2 == $(grep -w ^$1 networkmap.txt | grep -o $2) ]]; then
+    echo "La machine $2 est bien reliée à la machine $1"
+    networkOk=1
+  else
+    echo "La machine $2 n'est pas reliée à la machine $1"
+  fi
+}
+
 function createMachineLog {
   if [[ ! -f $1 ]]; then
     touch ./machines/$1.txt
@@ -79,6 +90,8 @@ function connectPrompt {
     "") connectPrompt $1 $2 ;;
     "who") whoCommand $1 $2 ;;
     "rusers") rusersCommand $1 $2 ;;
+    "rhost") rhostCommand $1 $2 ;;
+    "connect") connectCommand $1 $2 ;;
     "disconnect") disconnectCommand $1 $2;;
     *) helpCommand $1 $2 ;;
   esac
@@ -86,14 +99,41 @@ function connectPrompt {
 
 function whoCommand {
   echo "Utilisateurs connectés sur la machine $1 :"
-  awk -F, '{print $1," est connecté avec le terminal ",$2," depuis ",$3}' $1.txt
+  awk -F, '{print $1," est connecté avec le terminal ",$2," depuis ",$3}' ./machines/$1.txt
   connectPrompt $1 $2
 }
 
 function rusersCommand {
   echo "Liste des utilisateurs connectés sur le réseau :"
-  awk -F, '{print $1," est connecté sur la machine ",$2, " depuis ",$3}' network.txt
+  awk -F, '{print $1," est connecté sur la machine ",$2, " depuis ",$3}' networklive.txt
   connectPrompt $1 $2
+}
+
+function rhostCommand {
+  echo "Liste des machines reliées à la machine $1 :"
+  grep -w ^$1 networkmap.txt | awk -F: '{for (i=2; i<=NF; i++) print $i}' 
+  connectPrompt $1 $2
+}
+
+function connectCommand {
+  echo ""
+  newMachine=0
+  read -p "Saisissez le nom de la machine sur laquelle vous souhaitez vous connecter : " newMachine
+  checkParameters 3 -connect $newMachine $2
+  if [[ $parametersOk == 1 ]]; then
+    echo "Vérification du réseau virtuel"
+    checkNetwork $1 $newMachine
+    if [[ $networkOk == 1 ]]; then
+      deleteMachineLog $1 $2
+      createMachineLog $newMachine $2
+      clear
+      connectPrompt $newMachine $2
+    else
+      connectPrompt $1 $2
+    fi
+  else
+    connectPrompt $1 $2
+  fi
 }
 
 function helpCommand {

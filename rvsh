@@ -4,7 +4,7 @@ function checkParameters {
   if [[ $1 -eq 3 ]]; then
     if [[ $2 == '-connect' ]]; then
       virtuChecked=0
-      if [[ $3 == $(grep -o $3 virtu.txt) ]];then
+      if [[ $3 == $(grep -o ^$3 networkmap.txt) ]];then
         virtuChecked=1
         echo "Machine $3 identifiée"
         if [[ $4 == $(awk -F: '{print $1}' users.txt | grep -o $4) ]]; then
@@ -47,19 +47,19 @@ function checkParameters {
 
 function createMachineLog {
   if [[ ! -f $1 ]]; then
-    touch $1.txt
+    touch ./machines/$1.txt
   fi
   currentTerminal=$(tty)
   timeLog=$(date | cut -d' ' -f-4)
-  echo "$2,$currentTerminal,$timeLog" >> $1.txt
-  echo "$2,$1,$timeLog" >> network.txt
+  echo "$2,$currentTerminal,$timeLog" >> ./machines/$1.txt
+  echo "$2,$1,$timeLog" >> networklive.txt
 }
 
 function deleteMachineLog {
-  sed -i "s;$2,$currentTerminal,.*$;;g" $1.txt
-  sed -i '/^$/d' $1.txt
-  sed -i "s/$2,$1,.*$//g" network.txt
-  sed -i '/^$/d' network.txt
+  sed -i "s;$2,$currentTerminal,.*$;;g" ./machines/$1.txt
+  sed -i '/^$/d' ./machines/$1.txt
+  sed -i "s/$2,$1,.*$//g" networklive.txt
+  sed -i '/^$/d' networklive.txt
 }
 
 function adminPrompt {

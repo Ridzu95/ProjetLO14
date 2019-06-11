@@ -55,7 +55,8 @@ function createMachineLog {
 }
 
 function deleteMachineLog {
-  sed -e 's;$1,$currentTerminal,.*$;;g' $1.txt
+  sed -e "s;$2,$currentTerminal,.*$;;g" $1.txt
+  sed -e "s;bonjour;;g" $1.txt
 }
 
 function adminPrompt {
@@ -96,7 +97,8 @@ function helpCommand {
 }
 
 function disconnectCommand {
-  echo "Déconnexion de la machine"
+  echo "Déconnexion de la machine $1 sur le terminal $currentTerminal ..."
+  sleep 5
   deleteMachineLog $1 $2
   clear
 }

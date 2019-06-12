@@ -20,7 +20,7 @@ function checkParameters {
           if [[ $(echo $enteredPassword | sha512sum | cut -d' ' -f1) == $userPassword ]]; then
             parametersOk=1
           else
-            echo "Mot de passe érroné. Veuillez réessayer."
+            echo "Mot de passe erroné. Veuillez réessayer."
             checkParameters $1 $2 $3 $4
           fi
         else
@@ -186,6 +186,8 @@ function connectPrompt {
     "rhost") rhostCommand $1 $2 ;;
     "connect") connectCommand $1 $2 ;;
     "disconnect") disconnectCommand $1 $2;;
+		"su") suCommand $1 $2 ;;
+		"passwd") passwdCommand $1 $2 ;;
     *) helpCommand $1 $2 ;;
   esac
 }
@@ -242,7 +244,9 @@ function helpCommand {
   rusers : Cette commande permet d’accéder à la liste des utilisateurs connectés sur le réseau.
   rhost : Cette commande doit renvoyer la liste des machines rattachées à la machine. 
   connect : Cette commande permet à l’utilisateur de se connecter à une autre machine du réseau
-  "
+  su : Cette commande permet de changer d'utilisateur sur cette machine
+  passwd : Cette commande permet de changer de mot de passe sur l'ensemble du réseau virtuel
+	"
   connectPrompt $1 $2
 }
 
@@ -251,6 +255,34 @@ function disconnectCommand {
   deleteMachineLog $1 $2
   clear
 }
+
+# La fonction su permet de changer d'utilisateur
+# On vérifie que l'utilisateur a accès à la machine sur laquelle on est connecté.
+
+function suCommand {
+	echo ""
+	read -p "Saisir le nom d'utilisateur : " util
+	if [[ $util == $(grep $1 access.txt | grep -o $util) ]];then
+		userPassword=$(grep -w $util passwds.txt | cut -d':' -f2)
+		read -s -p "Mot de passe pour $util : " enteredPassword
+		if [[ $(echo $enteredPassword | sha512sum | cut -d' ' -f1) == $userPassword ]]; then
+			clear
+			deleteMachineLog $1 $2
+			createMachineLog $1 $util
+			connectPrompt $1 $util
+		else
+			echo "Mot de passe erroné."
+			connectPrompt $1 $2
+		fi
+	else
+		echo "L'utilisateur $util n'a pas accès à cette machine"
+		connectPrompt $1 $2
+	fi
+}
+
+#function passwdCommand {
+		
+#}
 
 # Quand l'utilisateur rentre sa commande rvsh : on vérifie les arguments.
 # Si tout est bon --> prompt admin ou prompt utilisateur.

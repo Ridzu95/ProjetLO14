@@ -16,7 +16,7 @@ function checkParameters {
         if [[ $3 == $(grep $4 access.txt | grep -o $3) ]];then
           enteredPassword=0
           userPassword=$(grep -w $4 passwds.txt | cut -d':' -f2)
-          read -s -p "Password for user $4 : " enteredPassword
+          read -s -p "Password for $4 : " enteredPassword
           if [[ $(echo $enteredPassword | sha512sum | cut -d' ' -f1) == $userPassword ]]; then
             parametersOk=1
           else
@@ -39,7 +39,8 @@ function checkParameters {
     if [[ $(echo $enteredPassword | sha512sum | cut -d' ' -f1) == $adminPassword ]]; then
       parametersOk=1
     else
-      echo "Mot de passe érroné"
+      echo "Mot de passe érroné. Veuillez réessayer."
+      checkParameters $1 $2 $3 $4
     fi
   elif [[ $1 -eq 1 && $2 == 'help' ]]; then
     echo "

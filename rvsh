@@ -97,10 +97,78 @@ function deleteMachineLog {
 function adminPrompt {
   trap "" 2
   trap "" 20
-  read -p "rvsh > " userInput
+  read -p "$(echo -e $BOLD$YELLOW"rvsh"$RESET "> ")" userInput
   case $userInput in
-
+    "") adminPrompt ;;
+    "users") createUserCommand ;;
+    "disconnect") disconnectCommand admin admin ;;
+    *) adminHelpCommand ;;
   esac
+}
+
+function createUserCommand {
+  read -p "Saisissez le nom de l'utilisateur à administrer : " userSelect
+  if [[ ! -z $(grep -o $userSelect access.txt) ]]; then
+    echo "
+      Tapez 's' pour supprimer l'utilisateur.
+      Tapez 'a' pour éditer ses accès.
+    "
+    read -p "Sélectionnez l'action à effectuer : " editChoice
+    if [[ $editChoice == "s" ]]; then
+      read -p "Etes-vous sûr de vouloir supprimer l'utilisateur $userSelect ? (o/n) : " confirm
+      if [[ $confirm == "o" ]]; then
+        sed -i "s/^$userSelect.*//g" access.txt
+        sed -i "s/^$userSelect.*//g" passwds.txt
+        sed -i '/^$/d' access.txt
+        sed -i '/^$/d' passwds.txt
+        echo "Utilisateur supprimé."
+        adminPrompt
+      elif [[ $confirm == "n" ]]; then
+        echo "Opération annulée."
+        adminPrompt
+      else
+        echo "Erreur lors de l'éxecution."
+        adminPrompt
+      fi
+    elif [[ $editChoice == "a" ]]; then
+      echo "Voici les accès machine pour l'utilisateur $userSelect"
+      grep -w $userSelect access.txt | awk -F: '{for (i=2; i<=NF; i++) print $i}'
+      # à terminer
+      adminPrompt
+    else
+      echo "Erreur lors de l'éxecution."
+      adminPrompt
+    fi
+  else
+    read -p "Cet utilisateur n'existe pas, voulez-vous le créer ? (o/n) : " createChoice
+    if [[ $createChoice == "o" ]]; then
+      echo "$userSelect" >> access.txt
+      echo "Définissons les accès pour l'utilisateur $userSelect. Liste des machines existantes sur le réseau : "
+      awk -F: '{print $1}' networkmap.txt
+      read -p "Choix d'accès pour $userSelect (séparés par des espaces) : " machinesChoice
+      set -- junk $machinesChoice
+      shift
+      for machine; do
+        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o $machine) ]]; then
+          echo "Machine $machine identifiée. Ajout d'accès."
+          sed -i "/$userSelect/s/$/:$machine/" access.txt
+        else
+          echo "Machine $machine non identifiée."
+        fi
+      done
+      read -p "Saisissez un mot de passe pour l'utilisateur $userSelect : " passwordChoice
+      echo "$userSelect" >> passwds.txt
+      cryptedPasswordChoice=$(echo $passwordChoice | sha512sum | cut -d' ' -f1)
+      sed -i "/^$userSelect/s/$/:$cryptedPasswordChoice/" passwds.txt
+      echo "Utilisateur créé."
+      adminPrompt
+    elif [[ $createChoice == "n" ]]; then
+      adminPrompt
+    else
+      echo "Erreur lors de l'éxecution."
+      adminPrompt
+    fi
+  fi
 }
 
 # Le prompt utilisateur affiche "utilisateur@machine >" (en jaune) et attend une commande de la part de l'utilisateur.
@@ -110,9 +178,6 @@ function adminPrompt {
 function connectPrompt {
   trap "" 2
   trap "" 20
-  RESET="\033[0m"
-  BOLD="\033[1m"
-  YELLOW="\033[38;5;11m"
   read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput 
   case $userInput in
     "") connectPrompt $1 $2 ;;
@@ -191,10 +256,14 @@ function disconnectCommand {
 # Si tout est bon --> prompt admin ou prompt utilisateur.
 
 function rvsh {
+  RESET="\033[0m"
+  BOLD="\033[1m"
+  YELLOW="\033[38;5;11m"
   checkParameters $# $1 $2 $3
   if [[ $parametersOk == 1 ]]; then
     clear
     if [[ $1 == "-admin" ]]; then
+      createMachineLog admin admin
       adminPrompt
     else
       createMachineLog $2 $3

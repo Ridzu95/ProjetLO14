@@ -188,6 +188,7 @@ function connectPrompt {
     "disconnect") disconnectCommand $1 $2;;
 		"su") suCommand $1 $2 ;;
 		"passwd") passwdCommand $1 $2 ;;
+		"finger") fingerCommand $1 $2 ;;
     *) helpCommand $1 $2 ;;
   esac
 }
@@ -246,6 +247,9 @@ function helpCommand {
   connect : Cette commande permet à l’utilisateur de se connecter à une autre machine du réseau
   su : Cette commande permet de changer d'utilisateur sur cette machine
   passwd : Cette commande permet de changer de mot de passe sur l'ensemble du réseau virtuel
+  finger : Cette commande affiche les informations complémentaires de l'utilisateur
+
+  Pour vous déconnecter, utilisez la commande disconnect
 	"
   connectPrompt $1 $2
 }
@@ -278,6 +282,19 @@ function suCommand {
 		echo "L'utilisateur $util n'a pas accès à cette machine"
 		connectPrompt $1 $2
 	fi
+}
+
+# La fonction finger affiche les informations complémentaires sur l'uilisateur : nom de login, nom réel, terminal, date de login, etc.
+
+function fingerCommand {
+	nom=$(grep -w $2 infos.txt | cut -d':' -f2)
+	echo "
+	Nom de login : $2
+	Nom : $nom
+	Terminal : $currentTerminal
+	Date de login : 
+	"
+	connectPrompt $1 $2
 }
 
 #function passwdCommand {

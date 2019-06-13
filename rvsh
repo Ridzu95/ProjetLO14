@@ -266,21 +266,24 @@ function disconnectCommand {
 function suCommand {
 	echo ""
 	read -p "Saisir le nom d'utilisateur : " util
-	if [[ $util == $(grep $1 access.txt | grep -o $util) ]];then
-		userPassword=$(grep -w $util passwds.txt | cut -d':' -f2)
-		read -s -p "Mot de passe pour $util : " enteredPassword
-		if [[ $(echo $enteredPassword | sha512sum | cut -d' ' -f1) == $userPassword ]]; then
+	checkParameters 3 -connect $1 $util
+	if [[ $parametersOk == 1 ]]; then
+#if [[ $util == $(grep $1 access.txt | grep -o $util) ]];then
+#		userPassword=$(grep -w $util passwds.txt | cut -d':' -f2)
+#		read -s -p "Mot de passe pour $util : " enteredPassword
+#		if [[ $(echo $enteredPassword | sha512sum | cut -d' ' -f1) == $userPassword ]]; then
 			clear
 			deleteMachineLog $1 $2
 			createMachineLog $1 $util
 			connectPrompt $1 $util
-		else
-			echo "Mot de passe erroné."
-			connectPrompt $1 $2
-		fi
+#		else
+#			echo "Mot de passe erroné."
+#			connectPrompt $1 $2
+#		fi
 	else
-		echo "L'utilisateur $util n'a pas accès à cette machine"
-		connectPrompt $1 $2
+		echo "parametersOk != 1"
+#		echo "L'utilisateur $util n'a pas accès à cette machine"
+#		connectPrompt $1 $2
 	fi
 }
 

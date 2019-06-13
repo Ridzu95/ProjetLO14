@@ -118,6 +118,7 @@ function manageHostCommand {
       if [[ $confirm == "o" ]]; then
         sed -i "/^$machineSelect.*/d" networkmap.txt
         sed -i "s/:$machineSelect//g" networkmap.txt
+        rm ./machines/$machineSelect.txt
         echo "Machine supprimée."
         adminPrompt
       elif [[ $confirm == "n" ]]; then

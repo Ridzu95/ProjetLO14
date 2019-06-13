@@ -288,11 +288,12 @@ function suCommand {
 
 function fingerCommand {
 	nom=$(grep -w $2 infos.txt | cut -d':' -f2)
+	datelog=$(cat ./machines/$1.txt | cut -d',' -f3)
 	echo "
 	Nom de login : $2
 	Nom : $nom
 	Terminal : $currentTerminal
-	Date de login : 
+	Date de login : $datelog
 	"
 	connectPrompt $1 $2
 }

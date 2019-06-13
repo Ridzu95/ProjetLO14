@@ -386,14 +386,18 @@ function passwdCommand {
 	if [[ $accord == "o" ]]; then
 		checkParameters 3 -connect $1 $2
 		if [[ $parametersOk == 1 ]]; then
-			read -s -p "Entrez le nouveau mot de passe" confirm1
+      echo ""
+			read -s -p "Entrez le nouveau mot de passe : " confirm1
+      echo ""
 			read -s -p "Confirmez le nouveau mot de passe" confirm2
 			if [[ $confirm1 == $confirm2 ]]; then
 				newcrypt=$(echo $confirm2 | sha512sum | cut -d' ' -f1)
 				sed -i "/^$2/s/$userPassword/$newcrypt/" passwds.txt
+        echo ""
 				echo "Mot de passe modifié."
 				connectPrompt $1 $2
 			else
+        echo ""
 				echo "Confirmation erronée, ancien mdp gardé."
 				connectPrompt $1 $2
 			fi

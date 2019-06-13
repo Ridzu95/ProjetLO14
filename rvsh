@@ -142,7 +142,7 @@ function manageHostCommand {
       set -- junk $machinesChoice
       shift
       for machine; do
-        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o $machine) ]]; then
+        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
           echo "Machine $machine identifiée. Ajout de lien."
           sed -i "/^$machineSelect/s/$/:$machine/" networkmap.txt
           sed -i "/^$machine/s/$/:$machineSelect/" networkmap.txt
@@ -167,7 +167,7 @@ function manageHostCommand {
       set -- junk $machinesChoice
       shift
       for machine; do
-        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o $machine) ]]; then
+        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
           echo "Machine $machine identifiée. Ajout de lien."
           sed -i "/^$machineSelect/s/$/:$machine/" networkmap.txt
           sed -i "/^$machine/s/$/:$machineSelect/" networkmap.txt
@@ -224,7 +224,7 @@ function manageUserCommand {
       set -- junk $machinesChoice
       shift
       for machine; do
-        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o $machine) ]]; then
+        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
           echo "Machine $machine identifiée. Ajout d'accès."
           sed -i "/$userSelect/s/$/:$machine/" access.txt
         else
@@ -247,7 +247,7 @@ function manageUserCommand {
       set -- junk $machinesChoice
       shift
       for machine; do
-        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o $machine) ]]; then
+        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
           echo "Machine $machine identifiée. Ajout d'accès."
           sed -i "/$userSelect/s/$/:$machine/" access.txt
         else

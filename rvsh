@@ -402,7 +402,7 @@ function passwdCommand {
 				connectPrompt $1 $2
 			fi
 		else
-			echo "Erreur parametersOK == 0"
+			echo "Erreur parametersOk == 0"
 		fi
 			connectPrompt $1 $2
 	elif [[ $accord == "n" ]]; then

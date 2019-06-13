@@ -381,9 +381,33 @@ function fingerCommand {
 	connectPrompt $1 $2
 }
 
-#function passwdCommand {
-		
-#}
+function passwdCommand {
+	read -p "Êtes-vous sûr de vouloir changer de mot de passe ? [o/n]" accord
+	if [[ $accord == "o" ]]; then
+		checkParameters 3 -connect $1 $2
+		if [[ $parametersOk == 1 ]]; then
+			read -s -p "Entrez le nouveau mot de passe" confirm1
+			read -s -p "Confirmez le nouveau mot de pass" confirm2
+			if [[ $confirm1 == $confirm2 ]]; then
+				newcrypt=$(echo $confirm2 | sha512sum | cut -d' ' -f1)
+				sed -e "s/\$$userPassord/$newcrypt/" passwds.txt
+				echo "Mot de passe modifié."
+				connectPrompt $1 $2
+			else
+				echo "Confirmation erronée, ancien mdp gardé."
+				connectPrompt $1 $2
+			fi
+		else
+			echo "Erreur parametersOK == 0"
+		fi
+			connectPrompt $1 $2
+	elif [[ $accord == "n" ]]; then
+		connectPrompt $1 $2
+	else
+		echo "Erreur lors de l'exécution."
+		passwdCommand
+	fi
+}
 
 function helpCommand {
   echo "

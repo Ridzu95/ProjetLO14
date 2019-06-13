@@ -387,10 +387,10 @@ function passwdCommand {
 		checkParameters 3 -connect $1 $2
 		if [[ $parametersOk == 1 ]]; then
 			read -s -p "Entrez le nouveau mot de passe" confirm1
-			read -s -p "Confirmez le nouveau mot de pass" confirm2
+			read -s -p "Confirmez le nouveau mot de passe" confirm2
 			if [[ $confirm1 == $confirm2 ]]; then
 				newcrypt=$(echo $confirm2 | sha512sum | cut -d' ' -f1)
-				sed -e "s/\$$userPassord/$newcrypt/" passwds.txt
+				sed -i "/^$2/s/$userPassword/$newcrypt/" passwds.txt
 				echo "Mot de passe modifié."
 				connectPrompt $1 $2
 			else
@@ -405,7 +405,7 @@ function passwdCommand {
 		connectPrompt $1 $2
 	else
 		echo "Erreur lors de l'exécution."
-		passwdCommand
+		passwdCommand $1 $2
 	fi
 }
 

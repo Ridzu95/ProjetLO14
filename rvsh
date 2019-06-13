@@ -73,7 +73,7 @@ function checkNetwork {
 
 function createMachineLog {
   # Si le fichier log machine n'existe pas, on le créée.
-  if [[ ! -f $1 ]]; then 
+  if [[ ! -f ./machines/$1.txt ]]; then 
     touch ./machines/$1.txt
   fi
   currentTerminal=$(tty)
@@ -118,7 +118,10 @@ function manageHostCommand {
       if [[ $confirm == "o" ]]; then
         sed -i "/^$machineSelect.*/d" networkmap.txt
         sed -i "s/:$machineSelect//g" networkmap.txt
-        rm ./machines/$machineSelect.txt
+        sed -i "s/:$machineSelect//g" access.txt
+        if [[ -f ./machines/$machineSelect.txt ]]; then
+          rm ./machines/$machineSelect.txt
+        fi
         echo "Machine supprimée."
         adminPrompt
       elif [[ $confirm == "n" ]]; then

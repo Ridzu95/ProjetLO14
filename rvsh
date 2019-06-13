@@ -272,6 +272,18 @@ function manageUserCommand {
   fi
 }
 
+function adminHelpCommand {
+	echo "
+  Commandes à votre disposition : 
+  
+  host : Permet d'ajouter ou d'enlever une machine du réseau virtuel. Vous pouvez également modifier les liens entre les machines.
+  users : Permet d'ajouter ou d'enlever un utilisateur, de lui donner les droits d'accès à une ou plusieurs machines, et de lui fixer un mot de passe.
+
+  Pour vous déconnecter, utilisez la commande disconnect.
+	"
+	adminPrompt
+}
+
 # Le prompt utilisateur affiche "utilisateur@machine >" (en jaune) et attend une commande de la part de l'utilisateur.
 # On met un case pour rassembler l'ensemble des commandes possibles.
 # Le case permet la redirection vers les commandes créées.

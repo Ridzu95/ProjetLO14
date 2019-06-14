@@ -92,236 +92,239 @@ function deleteMachineLog {
   sed -i '/^$/d' networklive.txt
 }
 
-function adminPrompt {
-  trap "" 2
-  trap "" 20
-  read -p "$(echo -e $BOLD$YELLOW"rvsh"$RESET "> ")" userInput
-  case $userInput in
-    "") adminPrompt ;;
-    "host") manageHostCommand ;;
-    "users") manageUserCommand ;;
-    "disconnect") disconnectCommand admin admin ;;
-    *) adminHelpCommand ;;
-  esac
-}
-
 function manageHostCommand {
-  read -p "Saisissez le nom de la machine à administrer : " machineSelect
-  if [[ ! -z $(grep -o ^$machineSelect networkmap.txt) ]]; then
-    echo "
-      Tapez 's' pour supprimer la machine.
-      Tapez 'l' pour éditer ses liens.
-    "
-    read -p "Sélectionnez l'action à effectuer : " editChoice
-    if [[ $editChoice == "s" ]]; then
-      read -p "Etes-vous sûr de vouloir supprimer la machine $machineSelect ? (o/n) : " confirm
-      if [[ $confirm == "o" ]]; then
-        sed -i "/^$machineSelect.*/d" networkmap.txt
-        sed -i "s/:$machineSelect//g" networkmap.txt
-        sed -i "s/:$machineSelect//g" access.txt
-        if [[ -f ./machines/$machineSelect.txt ]]; then
-          rm ./machines/$machineSelect.txt
+  if [[ $adminMode == 1 ]]; then
+    read -p "Saisissez le nom de la machine à administrer : " machineSelect
+    if [[ ! -z $(grep -o ^$machineSelect networkmap.txt) ]]; then
+      echo "
+        Tapez 's' pour supprimer la machine.
+        Tapez 'l' pour éditer ses liens.
+      "
+      read -p "Sélectionnez l'action à effectuer : " editChoice
+      if [[ $editChoice == "s" ]]; then
+        read -p "Etes-vous sûr de vouloir supprimer la machine $machineSelect ? (o/n) : " confirm
+        if [[ $confirm == "o" ]]; then
+          sed -i "/^$machineSelect.*/d" networkmap.txt
+          sed -i "s/:$machineSelect//g" networkmap.txt
+          sed -i "s/:$machineSelect//g" access.txt
+          if [[ -f ./machines/$machineSelect.txt ]]; then
+            rm ./machines/$machineSelect.txt
+          fi
+          echo "Machine supprimée."
+          Prompt $1 $2
+        elif [[ $confirm == "n" ]]; then
+          echo "Opération annulée."
+          Prompt $1 $2
+        else
+          echo "Erreur lors de l'éxecution."
+          Prompt $1 $2
         fi
-        echo "Machine supprimée."
-        adminPrompt
-      elif [[ $confirm == "n" ]]; then
-        echo "Opération annulée."
-        adminPrompt
+      elif [[ $editChoice == "l" ]]; then
+        echo "Voici les liens pour la machine $machineSelect"
+        echo ""
+        grep -w ^$machineSelect networkmap.txt | awk -F: '{for (i=2; i<=NF; i++) print $i}'
+        echo ""
+        echo "Redéfinissons les liens pour l'utilisateur $machineSelect. Liste des autres machines existantes sur le réseau : "
+        echo ""
+        grep -o -v ^$machineSelect networkmap.txt | awk -F: '{print $1}'
+        echo ""
+        read -p "Choix d'accès pour $machineSelect (séparés par des espaces) : " machinesChoice
+        sed -i "/^$machineSelect/s/:.*$//" networkmap.txt
+        set -- junk $machinesChoice
+        shift
+        for machine; do
+          if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
+            echo "Machine $machine identifiée. Ajout de lien."
+            sed -i "/^$machineSelect/s/$/:$machine/" networkmap.txt
+            sed -i "/^$machine/s/$/:$machineSelect/" networkmap.txt
+          else
+            echo "Machine $machine non identifiée."
+          fi
+        done
+        Prompt $1 $2
       else
         echo "Erreur lors de l'éxecution."
-        adminPrompt
+        Prompt $1 $2
       fi
-    elif [[ $editChoice == "l" ]]; then
-      echo "Voici les liens pour la machine $machineSelect"
-      echo ""
-      grep -w ^$machineSelect networkmap.txt | awk -F: '{for (i=2; i<=NF; i++) print $i}'
-      echo ""
-      echo "Redéfinissons les liens pour l'utilisateur $machineSelect. Liste des autres machines existantes sur le réseau : "
-      echo ""
-      grep -o -v ^$machineSelect networkmap.txt | awk -F: '{print $1}'
-      echo ""
-      read -p "Choix d'accès pour $machineSelect (séparés par des espaces) : " machinesChoice
-      sed -i "/^$machineSelect/s/:.*$//" networkmap.txt
-      set -- junk $machinesChoice
-      shift
-      for machine; do
-        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
-          echo "Machine $machine identifiée. Ajout de lien."
-          sed -i "/^$machineSelect/s/$/:$machine/" networkmap.txt
-          sed -i "/^$machine/s/$/:$machineSelect/" networkmap.txt
-        else
-          echo "Machine $machine non identifiée."
-        fi
-      done
-      adminPrompt
     else
-      echo "Erreur lors de l'éxecution."
-      adminPrompt
+      read -p "Cette machine n'existe pas, voulez-vous la créer ? (o/n) : " createChoice
+      if [[ $createChoice == "o" ]]; then
+        echo "Définissons les liens pour la machine $machineSelect. Liste des autres machines existantes sur le réseau : "
+        echo ""
+        awk -F: '{print $1}' networkmap.txt
+        echo ""
+        echo "$machineSelect" >> networkmap.txt
+        read -p "Choix des liens pour $machineSelect (séparés par des espaces) : " machinesChoice
+        set -- junk $machinesChoice
+        shift
+        for machine; do
+          if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
+            echo "Machine $machine identifiée. Ajout de lien."
+            sed -i "/^$machineSelect/s/$/:$machine/" networkmap.txt
+            sed -i "/^$machine/s/$/:$machineSelect/" networkmap.txt
+          else
+            echo "Machine $machine non identifiée."
+          fi
+        done
+        echo ""
+        Prompt $1 $2
+      elif [[ $createChoice == "n" ]]; then
+        Prompt $1 $2
+      else
+        echo "Erreur lors de l'éxecution."
+        Prompt $1 $2
+      fi
     fi
   else
-    read -p "Cette machine n'existe pas, voulez-vous la créer ? (o/n) : " createChoice
-    if [[ $createChoice == "o" ]]; then
-      echo "Définissons les liens pour la machine $machineSelect. Liste des autres machines existantes sur le réseau : "
-      echo ""
-      awk -F: '{print $1}' networkmap.txt
-      echo ""
-      echo "$machineSelect" >> networkmap.txt
-      read -p "Choix des liens pour $machineSelect (séparés par des espaces) : " machinesChoice
-      set -- junk $machinesChoice
-      shift
-      for machine; do
-        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
-          echo "Machine $machine identifiée. Ajout de lien."
-          sed -i "/^$machineSelect/s/$/:$machine/" networkmap.txt
-          sed -i "/^$machine/s/$/:$machineSelect/" networkmap.txt
-        else
-          echo "Machine $machine non identifiée."
-        fi
-      done
-      echo ""
-      adminPrompt
-    elif [[ $createChoice == "n" ]]; then
-      adminPrompt
-    else
-      echo "Erreur lors de l'éxecution."
-      adminPrompt
-    fi
+    echo "Vous n'êtes pas administrateur."
+    Prompt $1 $2
   fi
 }
 
 function manageUserCommand {
-  read -p "Saisissez le nom de l'utilisateur à administrer : " userSelect
-  if [[ ! -z $(grep -o $userSelect access.txt) ]]; then
-    echo "
-      Tapez 's' pour supprimer l'utilisateur.
-      Tapez 'a' pour éditer ses accès.
-    "
-    read -p "Sélectionnez l'action à effectuer : " editChoice
-    if [[ $editChoice == "s" ]]; then
-      read -p "Etes-vous sûr de vouloir supprimer l'utilisateur $userSelect ? (o/n) : " confirm
-      if [[ $confirm == "o" ]]; then
-        sed -i "s/^$userSelect.*//g" access.txt
-        sed -i "s/^$userSelect.*//g" passwds.txt
-        sed -i '/^$/d' access.txt
-        sed -i '/^$/d' passwds.txt
-        echo "Utilisateur supprimé."
-        adminPrompt
-      elif [[ $confirm == "n" ]]; then
-        echo "Opération annulée."
-        adminPrompt
+  if [[ $adminMode == 1 ]]; then
+    read -p "Saisissez le nom de l'utilisateur à administrer : " userSelect
+    if [[ ! -z $(grep -o $userSelect access.txt) ]]; then
+      echo "
+        Tapez 's' pour supprimer l'utilisateur.
+        Tapez 'a' pour éditer ses accès.
+      "
+      read -p "Sélectionnez l'action à effectuer : " editChoice
+      if [[ $editChoice == "s" ]]; then
+        read -p "Etes-vous sûr de vouloir supprimer l'utilisateur $userSelect ? (o/n) : " confirm
+        if [[ $confirm == "o" ]]; then
+          sed -i "s/^$userSelect.*//g" access.txt
+          sed -i "s/^$userSelect.*//g" passwds.txt
+          sed -i '/^$/d' access.txt
+          sed -i '/^$/d' passwds.txt
+          echo "Utilisateur supprimé."
+          Prompt $1 $2
+        elif [[ $confirm == "n" ]]; then
+          echo "Opération annulée."
+          Prompt $1 $2
+        else
+          echo "Erreur lors de l'éxecution."
+          Prompt $1 $2
+        fi
+      elif [[ $editChoice == "a" ]]; then
+        echo "Voici les accès machine pour l'utilisateur $userSelect"
+        echo ""
+        grep -w $userSelect access.txt | awk -F: '{for (i=2; i<=NF; i++) print $i}'
+        echo ""
+        echo "Redéfinissons les accès pour l'utilisateur $userSelect. Liste des machines existantes sur le réseau : "
+        echo ""
+        awk -F: '{print $1}' networkmap.txt
+        echo ""
+        read -p "Choix d'accès pour $userSelect (séparés par des espaces) : " machinesChoice
+        sed -i "/$userSelect/s/:.*$//" access.txt
+        set -- junk $machinesChoice
+        shift
+        for machine; do
+          if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
+            echo "Machine $machine identifiée. Ajout d'accès."
+            sed -i "/$userSelect/s/$/:$machine/" access.txt
+          else
+            echo "Machine $machine non identifiée."
+          fi
+        done
+        Prompt $1 $2
       else
         echo "Erreur lors de l'éxecution."
-        adminPrompt
+        Prompt $1 $2
       fi
-    elif [[ $editChoice == "a" ]]; then
-      echo "Voici les accès machine pour l'utilisateur $userSelect"
-      echo ""
-      grep -w $userSelect access.txt | awk -F: '{for (i=2; i<=NF; i++) print $i}'
-      echo ""
-      echo "Redéfinissons les accès pour l'utilisateur $userSelect. Liste des machines existantes sur le réseau : "
-      echo ""
-      awk -F: '{print $1}' networkmap.txt
-      echo ""
-      read -p "Choix d'accès pour $userSelect (séparés par des espaces) : " machinesChoice
-      sed -i "/$userSelect/s/:.*$//" access.txt
-      set -- junk $machinesChoice
-      shift
-      for machine; do
-        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
-          echo "Machine $machine identifiée. Ajout d'accès."
-          sed -i "/$userSelect/s/$/:$machine/" access.txt
-        else
-          echo "Machine $machine non identifiée."
-        fi
-      done
-      adminPrompt
     else
-      echo "Erreur lors de l'éxecution."
-      adminPrompt
+      read -p "Cet utilisateur n'existe pas, voulez-vous le créer ? (o/n) : " createChoice
+      if [[ $createChoice == "o" ]]; then
+        echo "$userSelect" >> access.txt
+        echo "Définissons les accès pour l'utilisateur $userSelect. Liste des machines existantes sur le réseau : "
+        echo ""
+        awk -F: '{print $1}' networkmap.txt
+        read -p "Choix d'accès pour $userSelect (séparés par des espaces) : " machinesChoice
+        set -- junk $machinesChoice
+        shift
+        for machine; do
+          if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
+            echo "Machine $machine identifiée. Ajout d'accès."
+            sed -i "/$userSelect/s/$/:$machine/" access.txt
+          else
+            echo "Machine $machine non identifiée."
+          fi
+        done
+        read -p "Saisissez un mot de passe pour l'utilisateur $userSelect : " passwordChoice
+        echo "$userSelect" >> passwds.txt
+        cryptedPasswordChoice=$(echo $passwordChoice | sha512sum | cut -d' ' -f1)
+        sed -i "/^$userSelect/s/$/:$cryptedPasswordChoice/" passwds.txt
+        echo "Utilisateur créé."
+        Prompt $1 $2
+      elif [[ $createChoice == "n" ]]; then
+        Prompt $1 $2
+      else
+        echo "Erreur lors de l'éxecution."
+        Prompt $1 $2
+      fi
     fi
   else
-    read -p "Cet utilisateur n'existe pas, voulez-vous le créer ? (o/n) : " createChoice
-    if [[ $createChoice == "o" ]]; then
-      echo "$userSelect" >> access.txt
-      echo "Définissons les accès pour l'utilisateur $userSelect. Liste des machines existantes sur le réseau : "
-      echo ""
-      awk -F: '{print $1}' networkmap.txt
-      read -p "Choix d'accès pour $userSelect (séparés par des espaces) : " machinesChoice
-      set -- junk $machinesChoice
-      shift
-      for machine; do
-        if [[ $machine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$machine$) ]]; then
-          echo "Machine $machine identifiée. Ajout d'accès."
-          sed -i "/$userSelect/s/$/:$machine/" access.txt
-        else
-          echo "Machine $machine non identifiée."
-        fi
-      done
-      read -p "Saisissez un mot de passe pour l'utilisateur $userSelect : " passwordChoice
-      echo "$userSelect" >> passwds.txt
-      cryptedPasswordChoice=$(echo $passwordChoice | sha512sum | cut -d' ' -f1)
-      sed -i "/^$userSelect/s/$/:$cryptedPasswordChoice/" passwds.txt
-      echo "Utilisateur créé."
-      adminPrompt
-    elif [[ $createChoice == "n" ]]; then
-      adminPrompt
-    else
-      echo "Erreur lors de l'éxecution."
-      adminPrompt
-    fi
+    echo "Vous n'êtes pas administrateur."
+    Prompt $1 $2
   fi
-}
-
-function adminHelpCommand {
-	echo "
-  Commandes à votre disposition : 
-  
-  host : Permet d'ajouter ou d'enlever une machine du réseau virtuel. Vous pouvez également modifier les liens entre les machines.
-  users : Permet d'ajouter ou d'enlever un utilisateur, de lui donner les droits d'accès à une ou plusieurs machines, et de lui fixer un mot de passe.
-
-  Pour vous déconnecter, utilisez la commande disconnect.
-	"
-	adminPrompt
 }
 
 # Le prompt utilisateur affiche "utilisateur@machine >" (en jaune) et attend une commande de la part de l'utilisateur.
 # On met un case pour rassembler l'ensemble des commandes possibles.
 # Le case permet la redirection vers les commandes créées.
 
-function connectPrompt {
+function Prompt {
   trap "" 2
   trap "" 20
-  read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput 
-  case $userInput in
-    "") connectPrompt $1 $2 ;;
-    "who") whoCommand $1 $2 ;;
-    "rusers") rusersCommand $1 $2 ;;
-    "rhost") rhostCommand $1 $2 ;;
-    "connect") connectCommand $1 $2 ;;
-    "disconnect") disconnectCommand $1 $2;;
-		"su") suCommand $1 $2 ;;
-		"passwd") passwdCommand $1 $2 ;;
-		"finger") fingerCommand $1 $2 ;;
-    *) helpCommand $1 $2 ;;
-  esac
+  if [[ $adminMode == 1 ]]; then
+    read -p "$(echo -e $BOLD$YELLOW"rvsh"$RESET "> ")" userInput
+    case $userInput in
+      "") Prompt $1 $2 ;;
+      "who") whoCommand $1 $2 ;;
+      "rusers") rusersCommand $1 $2 ;;
+      "rhost") rhostCommand $1 $2 ;;
+      "connect") connectCommand $1 $2 ;;
+      "su") suCommand $1 $2 ;;
+      "passwd") passwdCommand $1 $2 ;;
+      "finger") fingerCommand $1 $2 ;;
+      "host") manageHostCommand $1 $2 ;;
+      "users") manageUserCommand $1 $2 ;;
+      "disconnect") disconnectCommand $1 $2 ;;
+      *) helpCommand $1 $2 ;;
+    esac
+  else
+    read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput
+    case $userInput in
+      "") Prompt $1 $2 ;;
+      "who") whoCommand $1 $2 ;;
+      "rusers") rusersCommand $1 $2 ;;
+      "rhost") rhostCommand $1 $2 ;;
+      "connect") connectCommand $1 $2 ;;
+      "su") suCommand $1 $2 ;;
+      "passwd") passwdCommand $1 $2 ;;
+      "finger") fingerCommand $1 $2 ;;
+      "disconnect") disconnectCommand $1 $2 ;;
+      *) helpCommand $1 $2 ;;
+    esac
+  fi
 }
 
 function whoCommand {
   echo "Utilisateurs connectés sur la machine $1 :"
   awk -F, '{print $1," est connecté avec le terminal ",$2," depuis ",$3}' ./machines/$1.txt
-  connectPrompt $1 $2
+  Prompt $1 $2
 }
 
 function rusersCommand {
   echo "Liste des utilisateurs connectés sur le réseau :"
   awk -F, '{print $1," est connecté sur la machine ",$2, " depuis ",$3}' networklive.txt
-  connectPrompt $1 $2
+  Prompt $1 $2
 }
 
 function rhostCommand {
   echo "Liste des machines reliées à la machine $1 :"
   grep -w ^$1 networkmap.txt | awk -F: '{for (i=2; i<=NF; i++) print $i}' 
-  connectPrompt $1 $2
+  Prompt $1 $2
 }
 
 # La fonction connectCommand permet de passer d'une machine à une autre.
@@ -333,20 +336,47 @@ function connectCommand {
   echo ""
   newMachine=0
   read -p "Saisissez le nom de la machine sur laquelle vous souhaitez vous connecter : " newMachine
-  checkParameters 3 -connect $newMachine $2
-  if [[ $parametersOk == 1 ]]; then
-    echo "Vérification du réseau virtuel"
-    checkNetwork $1 $newMachine
-    if [[ $networkOk == 1 ]]; then
+  if [[ ! $adminMode == 1 && ! $2 == "admin" ]]; then
+    checkParameters 3 -connect $newMachine $2
+    if [[ $parametersOk == 1 ]]; then
+      echo "Vérification du réseau virtuel"
+      checkNetwork $1 $newMachine
+      if [[ $networkOk == 1 ]]; then
+        deleteMachineLog $1 $2
+        createMachineLog $newMachine $2
+        clear
+        Prompt $newMachine $2
+      else
+        Prompt $1 $2
+      fi
+    else
+      Prompt $1 $2
+    fi
+  elif [[ $newMachine == 'admin' ]]; then
+    checkParameters 1 -admin
+    if [[ $parametersOk == 1 ]]; then
       deleteMachineLog $1 $2
       createMachineLog $newMachine $2
       clear
-      connectPrompt $newMachine $2
+      adminMode=1
+      Prompt $newMachine $2
     else
-      connectPrompt $1 $2
+      Prompt $1 $2
+    fi
+  elif [[ $newMachine == $(awk -F: '{print $1}' networkmap.txt | grep -o ^$newMachine) ]]; then
+    checkParameters 1 -admin
+    if [[ $parametersOk == 1 ]]; then
+      deleteMachineLog $1 $2
+      createMachineLog $newMachine $2
+      adminMode=0
+      clear
+      Prompt $newMachine $2
+    else
+      Prompt $1 $2
     fi
   else
-    connectPrompt $1 $2
+    echo "La machine n'existe pas."
+    Prompt $1 $2
   fi
 }
 
@@ -356,14 +386,18 @@ function connectCommand {
 function suCommand {
 	echo ""
 	read -p "Saisir le nom d'utilisateur : " util
-	checkParameters 3 -connect $1 $util
+  if [[ $util == 'admin' ]]; then
+    checkParameters 1 -admin
+  else
+	  checkParameters 3 -connect $1 $util
+  fi
 	if [[ $parametersOk == 1 ]]; then
-			clear
-			deleteMachineLog $1 $2
-			createMachineLog $1 $util
-			connectPrompt $1 $util
+    clear
+    deleteMachineLog $1 $2
+    createMachineLog $1 $util
+    Prompt $1 $util
 	else
-    connectPrompt $1 $2
+    Prompt $1 $2
 	fi
 }
 
@@ -378,35 +412,39 @@ function fingerCommand {
 	Terminal : $currentTerminal
 	Date de login : $datelog
 	"
-	connectPrompt $1 $2
+	Prompt $1 $2
 }
 
 function passwdCommand {
 	read -p "Êtes-vous sûr de vouloir changer de mot de passe ? [o/n]" accord
 	if [[ $accord == "o" ]]; then
-		checkParameters 3 -connect $1 $2
+    if [[ $adminMode == 1 ]]; then
+      checkParameters 1 -admin
+    else
+      checkParameters 3 -connect $1 $util
+    fi
 		if [[ $parametersOk == 1 ]]; then
       echo ""
 			read -s -p "Entrez le nouveau mot de passe : " confirm1
       echo ""
-			read -s -p "Confirmez le nouveau mot de passe" confirm2
+			read -s -p "Confirmez le nouveau mot de passe : " confirm2
 			if [[ $confirm1 == $confirm2 ]]; then
 				newcrypt=$(echo $confirm2 | sha512sum | cut -d' ' -f1)
-				sed -i "/^$2/s/$userPassword/$newcrypt/" passwds.txt
+				sed -i "/^$2/s/:$userPassword/:$newcrypt/" passwds.txt
         echo ""
 				echo "Mot de passe modifié."
-				connectPrompt $1 $2
+				Prompt $1 $2
 			else
         echo ""
 				echo "Confirmation erronée, ancien mdp gardé."
-				connectPrompt $1 $2
+				Prompt $1 $2
 			fi
 		else
 			echo "Erreur parametersOk == 0"
 		fi
-			connectPrompt $1 $2
+			Prompt $1 $2
 	elif [[ $accord == "n" ]]; then
-		connectPrompt $1 $2
+		Prompt $1 $2
 	else
 		echo "Erreur lors de l'exécution."
 		passwdCommand $1 $2
@@ -425,9 +463,14 @@ function helpCommand {
   passwd : Cette commande permet de changer de mot de passe sur l'ensemble du réseau virtuel.
   finger : Cette commande affiche les informations complémentaires de l'utilisateur.
 
+  Commandes admin :
+
+  host : Permet d'ajouter ou d'enlever une machine du réseau virtuel. Vous pouvez également modifier les liens entre les machines.
+  users : Permet d'ajouter ou d'enlever un utilisateur, de lui donner les droits d'accès à une ou plusieurs machines, et de lui fixer un mot de passe.
+
   Pour vous déconnecter, utilisez la commande disconnect.
 	"
-  connectPrompt $1 $2
+  Prompt $1 $2
 }
 
 function disconnectCommand {
@@ -440,6 +483,9 @@ function disconnectCommand {
 # Si tout est bon --> prompt admin ou prompt utilisateur.
 
 function rvsh {
+  adminMode=0
+  machine=$2
+  user=$3
   RESET="\033[0m"
   BOLD="\033[1m"
   YELLOW="\033[38;5;11m"
@@ -447,12 +493,12 @@ function rvsh {
   if [[ $parametersOk == 1 ]]; then
     clear
     if [[ $1 == "-admin" ]]; then
-      createMachineLog admin admin
-      adminPrompt
-    else
-      createMachineLog $2 $3
-      connectPrompt $2 $3
+      machine=admin
+      user=admin
+      adminMode=1
     fi
+    createMachineLog $machine $user
+    Prompt $machine $user
   fi
 }
 

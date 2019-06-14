@@ -34,9 +34,9 @@ function checkParameters {
     fi
   elif [[ $1 -eq 1 && $2 ==  '-admin' ]]; then
     enteredPassword=0
-    adminPassword=$(grep -w admin passwds.txt | cut -d':' -f2)
+    userPassword=$(grep -w admin passwds.txt | cut -d':' -f2)
     read -s -p "Password for rvsh admin : " enteredPassword
-    if [[ $(echo $enteredPassword | sha512sum | cut -d' ' -f1) == $adminPassword ]]; then
+    if [[ $(echo $enteredPassword | sha512sum | cut -d' ' -f1) == $userPassword ]]; then
       parametersOk=1
     else
       echo "Mot de passe érroné. Veuillez réessayer."
@@ -416,9 +416,9 @@ function fingerCommand {
 }
 
 function passwdCommand {
-	read -p "Êtes-vous sûr de vouloir changer de mot de passe ? [o/n]" accord
+	read -p "Êtes-vous sûr de vouloir changer de mot de passe ? [o/n] : " accord
 	if [[ $accord == "o" ]]; then
-    if [[ $adminMode == 1 ]]; then
+    if [[ $2 == "admin" ]]; then
       checkParameters 1 -admin
     else
       checkParameters 3 -connect $1 $util

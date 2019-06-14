@@ -462,14 +462,15 @@ function helpCommand {
   su : Cette commande permet de changer d'utilisateur sur cette machine.
   passwd : Cette commande permet de changer de mot de passe sur l'ensemble du réseau virtuel.
   finger : Cette commande affiche les informations complémentaires de l'utilisateur.
+  "
+  if [[ $adminMode == 1 ]]; then
+    echo "
+    host : Permet d'ajouter ou d'enlever une machine du réseau virtuel. Vous pouvez également modifier les liens entre les machines.
+    users : Permet d'ajouter ou d'enlever un utilisateur, de lui donner les droits d'accès à une ou plusieurs machines, et de lui fixer un mot de passe.
 
-  Commandes admin :
-
-  host : Permet d'ajouter ou d'enlever une machine du réseau virtuel. Vous pouvez également modifier les liens entre les machines.
-  users : Permet d'ajouter ou d'enlever un utilisateur, de lui donner les droits d'accès à une ou plusieurs machines, et de lui fixer un mot de passe.
-
-  Pour vous déconnecter, utilisez la commande disconnect.
-	"
+    Pour vous déconnecter, utilisez la commande disconnect.
+	  "
+  fi
   Prompt $1 $2
 }
 

@@ -294,7 +294,7 @@ function Prompt {
       *) helpCommand $1 $2 ;;
     esac
   else
-    read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput destination message
+    read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput arg2 arg3
     case $userInput in
       "") Prompt $1 $2 ;;
       "who") whoCommand $1 $2 ;;
@@ -304,7 +304,7 @@ function Prompt {
       "su") suCommand $1 $2 ;;
       "passwd") passwdCommand $1 $2 ;;
       "finger") fingerCommand $1 $2 ;;
-			"write") writeCommand $1 $2 $userInput $destination $message ;; 
+			"write") writeCommand $1 $2 $userInput $arg2 $arg3 ;; 
       "disconnect") disconnectCommand $1 $2 ;;
       *) helpCommand $1 $2 ;;
     esac

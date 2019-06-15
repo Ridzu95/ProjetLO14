@@ -4,7 +4,7 @@
 # Etape 1 : vérifier le nobre d'arguments. Issues : 3 arguments et mode connect, 2 argument et mode admin, mode help.
 # Etape 2 : en mode connect, on vérifie le nom de la machine entrée et le nom d'utilisateur (check de mot de passe à venir), ainsi que les accès.
 # En mode admin, on demande le mot de passe. Le mot de passe est hashé dans le fichier admin.txt. L'input de l'admin est chiffré et on vérifie avec le mot de passe chiffré stocké.
-# Si tout est bon, on peut passer la varible parametersOk à 1 pour passer à la suite.
+# Si tout est bon, on peut passer la variable parametersOk à 1 pour passer à la suite.
 
 function checkParameters {
   parametersOk=0
@@ -287,6 +287,7 @@ function Prompt {
       "su") suCommand $1 $2 ;;
       "passwd") passwdCommand $1 $2 ;;
       "finger") fingerCommand $1 $2 ;;
+			"afinger") afingerCommand $1 $2 ;;
       "host") manageHostCommand $1 $2 ;;
       "users") manageUserCommand $1 $2 ;;
       "disconnect") disconnectCommand $1 $2 ;;
@@ -405,10 +406,12 @@ function suCommand {
 
 function fingerCommand {
 	nom=$(grep -w $2 infos.txt | cut -d':' -f2)
+	age=$(grep -w $2 infos.txt | cut -d':' -f2)
 	datelog=$(cat ./machines/$1.txt | cut -d',' -f3)
 	echo "
 	Nom de login : $2
 	Nom : $nom
+	Age : $age
 	Terminal : $currentTerminal
 	Date de login : $datelog
 	"
@@ -451,6 +454,35 @@ function passwdCommand {
 	fi
 }
 
+function afingerCommand {
+	echo ""
+	read -p "De quel utilisateur souhaitez-vous modifier renseigner les informations ? " util
+	exist=$(grep -w $util infos.txt)
+	if [[ -z $exist ]]; then
+		echo "L'utilisateur que vous recherchez n'existe pas."
+		afingerCommand $1 $2
+	else
+# On considère que l'admin peut rentrer le login tout comme le nom de l'utilisateur dont il veut modifier les informations (il est possible qu'il ne connaisse pas tous les logins, seulement les noms)
+# On récupère donc le login au lieu de considérer directement $util == $login
+		login=$(grep -w $util infos.txt | cut -d':' -f1)
+		nom=$(grep -w $util infos.txt | cut -d':' -f2)
+		age=$(grep -w $util infos.txt | cut -d':' -f3)
+		echo "Infos actuelles de l'utilisateur :
+		Login : $login
+		Nom : $nom
+		Age : $age
+		"
+		read -p "Veuillez entrer le nouveau login : " login
+		read -p "Veuillez entrer le nom : " nom
+		read -p "Veuillez entrer l'âge : " age
+		sed -i "s/^$login.*//" infos.txt
+		sed -i "/^$/d" infos.txt
+		echo "$login:$nom:$age" > infos.txt
+		echo "Informations modifiées."
+		Prompt $1 $2
+	fi
+}
+
 function helpCommand {
   echo "
   Commandes à votre disposition sur cette machine :
@@ -461,12 +493,11 @@ function helpCommand {
   connect : Cette commande permet à l’utilisateur de se connecter à une autre machine du réseau.
   su : Cette commande permet de changer d'utilisateur sur cette machine.
   passwd : Cette commande permet de changer de mot de passe sur l'ensemble du réseau virtuel.
-  finger : Cette commande affiche les informations complémentaires de l'utilisateur.
-  "
+  finger : Cette commande affiche les informations complémentaires de l'utilisateur."
   if [[ $adminMode == 1 ]]; then
-    echo "
-    host : Permet d'ajouter ou d'enlever une machine du réseau virtuel. Vous pouvez également modifier les liens entre les machines.
+    echo "  host : Permet d'ajouter ou d'enlever une machine du réseau virtuel. Vous pouvez également modifier les liens entre les machines.
     users : Permet d'ajouter ou d'enlever un utilisateur, de lui donner les droits d'accès à une ou plusieurs machines, et de lui fixer un mot de passe.
+    afinger : Permet de renseigner les informations complémentaires sur l'utilisateur.
 
     Pour vous déconnecter, utilisez la commande disconnect.
 	  "

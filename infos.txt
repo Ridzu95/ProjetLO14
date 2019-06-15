@@ -1,2 +1,2 @@
-ridzu:VraiNomridzu
-agnou:VraiNomagnou
+ridzu:Nomridzu:inconnu
+agnou:Nomagnou:inconnu

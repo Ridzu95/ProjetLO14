@@ -294,7 +294,7 @@ function Prompt {
       *) helpCommand $1 $2 ;;
     esac
   else
-    read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput
+    read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput destination message
     case $userInput in
       "") Prompt $1 $2 ;;
       "who") whoCommand $1 $2 ;;
@@ -304,7 +304,7 @@ function Prompt {
       "su") suCommand $1 $2 ;;
       "passwd") passwdCommand $1 $2 ;;
       "finger") fingerCommand $1 $2 ;;
-			"write \.\*") writeCommand $1 $2 $userInput ;; 
+			"write") writeCommand $1 $2 $userInput $destination $message ;; 
       "disconnect") disconnectCommand $1 $2 ;;
       *) helpCommand $1 $2 ;;
     esac
@@ -486,15 +486,19 @@ function afingerCommand {
 }
 
 function writeCommand {
-	paramWrite=${3#* }
-	destination=$(echo $paramWrite | cut -d' ' -f1)
-	destUser=$(echo $destination | cut -d'@' -f1)
-	destMachine=$(echo $destination | cut -d'@' -f2)
-	message=${paramWrite/$destination /}
-	echo "destUser = $destUser"
-	echo "destMach = $destMachine"
-	echo "message = $message"
-	Prompt $1 $2
+	#paramWrite=${3#* }
+	#destination=$(echo $paramWrite | cut -d' ' -f1)
+	#destUser=$(echo $destination | cut -d'@' -f1)
+	#destMachine=$(echo $destination | cut -d'@' -f2)
+	#message=${paramWrite/$destination /}
+	#echo "destUser = $destUser"
+	#echo "destMach = $destMachine"
+	#echo "message = $message"
+	#Prompt $1 $2
+  echo $3
+  echo $4
+  echo $5
+  Prompt $1 $2
 }
 
 function helpCommand {

@@ -294,7 +294,7 @@ function Prompt {
       *) helpCommand $1 $2 ;;
     esac
   else
-    read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput arg2 arg3
+    read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput arg2
     case $userInput in
       "") Prompt $1 $2 ;;
       "who") whoCommand $1 $2 ;;
@@ -304,7 +304,7 @@ function Prompt {
       "su") suCommand $1 $2 ;;
       "passwd") passwdCommand $1 $2 ;;
       "finger") fingerCommand $1 $2 ;;
-			"write") writeCommand $1 $2 $userInput $arg2 $arg3 ;; 
+			"write") writeCommand $1 $2 $arg2 ;; 
       "disconnect") disconnectCommand $1 $2 ;;
       *) helpCommand $1 $2 ;;
     esac
@@ -459,45 +459,56 @@ function passwdCommand {
 
 function afingerCommand {
 	echo ""
-	read -p "De quel utilisateur souhaitez-vous modifier renseigner les informations ? " util
+	read -p "De quel utilisateur souhaitez-vous modifier les informations ? " util
 	exist=$(grep -w $util infos.txt)
 	if [[ -z $exist ]]; then
 		echo "L'utilisateur que vous recherchez n'existe pas."
-		afingerCommand $1 $2
+		Prompt $1 $2
 	else
-# On considère que l'admin peut rentrer le login tout comme le nom de l'utilisateur dont il veut modifier les informations (il est possible qu'il ne connaisse pas tous les logins, seulement les noms)
-# On récupère donc le login au lieu de considérer directement $util == $login
-		login=$(grep -w $util infos.txt | cut -d':' -f1)
-		nom=$(grep -w $util infos.txt | cut -d':' -f2)
-		age=$(grep -w $util infos.txt | cut -d':' -f3)
+    # On considère que l'admin peut rentrer le login tout comme le nom de l'utilisateur dont il veut modifier les informations (il est possible qu'il ne connaisse pas tous les logins, seulement les noms)
+    # On récupère donc le login au lieu de considérer directement $util == $login
+		login=$(grep -w ^$util infos.txt | cut -d':' -f1)
+		nom=$(grep -w ^$util infos.txt | cut -d':' -f2)
+		age=$(grep -w ^$util infos.txt | cut -d':' -f3)
+    tel=$(grep -w ^$util infos.txt | cut -d':' -f4)
 		echo "Infos actuelles de l'utilisateur :
-		Login : $login
+		Login : $login (non modifiable)
 		Nom : $nom
 		Age : $age
+    Tél. : $tel
 		"
-		read -p "Veuillez entrer le nom : " nom
-		read -p "Veuillez entrer l'âge : " age
-		sed -i "s/^$login.*//" infos.txt
-		sed -i "/^$/d" infos.txt
-		echo "$login:$nom:$age" > infos.txt
-		echo "Informations modifiées."
-		Prompt $1 $2
+		read -p "Quelles informations souhaitez-vous modifier ? ( nom | age | phone ) : " afingerarg1 afingerarg2 afingerarg3
+    if [[ $afingerarg1 == "nom" ]] || [[ $afingerarg2 == "nom" ]] || [[ $afingerarg3 == "nom" ]]; then
+      read -p "Entrez le nouveau nom de l'utilisateur : " newName
+      sed -i "s/$nom/$newName/" infos.txt
+    else
+      echo "Argument vide ou n'existe pas."
+    fi
+    if [[ $afingerarg1 == "age" ]] || [[ $afingerarg2 == "age" ]] || [[ $afingerarg3 == "age" ]]; then
+      read -p "Entrez l'âge de l'utilisateur : " newAge
+      sed -i "s/$age/$newAge/" infos.txt
+    else
+      echo "Argument vide ou n'existe pas."
+    fi
+    if [[ $afingerarg1 == "phone" ]] || [[ $afingerarg2 == "phone" ]] || [[ $afingerarg3 == "phone" ]]; then
+      read -p "Entrez le numéro de téléphone de l'utilisateur : " newPhone
+      sed -i "s/$tel/$newPhone/" infos.txt
+    else
+      echo "Argument vide ou n'existe pas."
+    fi
+    Prompt $1 $2
 	fi
 }
 
 function writeCommand {
-	#paramWrite=${3#* }
-	#destination=$(echo $paramWrite | cut -d' ' -f1)
-	#destUser=$(echo $destination | cut -d'@' -f1)
-	#destMachine=$(echo $destination | cut -d'@' -f2)
-	#message=${paramWrite/$destination /}
-	#echo "destUser = $destUser"
-	#echo "destMach = $destMachine"
-	#echo "message = $message"
-	#Prompt $1 $2
-  echo $3
-  echo $4
-  echo $5
+	destinationUser=$(echo $3 | cut -d'@' -f1)
+  destinationMachine=$(echo $3 | cut -d'@' -f2)
+  checkNetwork $1 $destinationMachine
+  if [[  ]]
+  if [[ $checkNetwork == 1 ]]; then
+    read -p "Saisissez le message à envoyer : " userMessage
+    destinationTerminal=$()
+  else
   Prompt $1 $2
 }
 

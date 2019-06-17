@@ -61,7 +61,6 @@ function checkParameters {
 function checkNetwork {
   networkOk=0
   if [[ $2 == $(grep -w ^$1 networkmap.txt | grep -o $2) ]]; then
-    echo "La machine $2 est bien reliée à la machine $1"
     networkOk=1
   else
     echo "La machine $2 n'est pas reliée à la machine $1"
@@ -503,13 +502,31 @@ function afingerCommand {
 function writeCommand {
 	destinationUser=$(echo $3 | cut -d'@' -f1)
   destinationMachine=$(echo $3 | cut -d'@' -f2)
-  checkNetwork $1 $destinationMachine
-  if [[  ]]
-  if [[ $checkNetwork == 1 ]]; then
-    read -p "Saisissez le message à envoyer : " userMessage
-    destinationTerminal=$()
+  if [[ $(grep -w ^$destinationUser networklive.txt | cut -d',' -f1) == $destinationUser ]]; then
+    if [[ $(grep -w ^$destinationUser networklive.txt | cut -d',' -f2) == $destinationMachine ]]; then
+      checkNetwork $1 $destinationMachine
+      if [[ $networkOk == 1 ]]; then
+        read -p "Saisissez le message à envoyer : " userMessage
+        destinationTerminal=$(grep -w ^$destinationUser ./machines/$destinationMachine.txt | cut -d',' -f2)
+        echo "
+        Message reçu de $2 sur la machine $1 : $userMessage
+
+        Appuyez sur entrée pour continuer.
+        " >> $destinationTerminal
+        Prompt $1 $2
+      else
+        echo "La machine $1 n'est pas reliée à la machine $destinationMachine"
+        Prompt $1 $2
+      fi
+    else
+      echo "L'utilisateur $destinationUser n'est pas connecté sur la machine $destinationMachine"
+      Prompt $1 $2
+    fi
   else
-  Prompt $1 $2
+    echo "L'utilisateur $destinationUser n'est pas en ligne."
+    Prompt $1 $2
+  fi
+    
 }
 
 function helpCommand {
@@ -522,9 +539,11 @@ function helpCommand {
   connect : Cette commande permet à l’utilisateur de se connecter à une autre machine du réseau.
   su : Cette commande permet de changer d'utilisateur sur cette machine.
   passwd : Cette commande permet de changer de mot de passe sur l'ensemble du réseau virtuel.
-  finger : Cette commande affiche les informations complémentaires de l'utilisateur."
+  finger : Cette commande affiche les informations complémentaires de l'utilisateur.
+  "
   if [[ $adminMode == 1 ]]; then
-    echo "  host : Permet d'ajouter ou d'enlever une machine du réseau virtuel. Vous pouvez également modifier les liens entre les machines.
+    echo "
+    host : Permet d'ajouter ou d'enlever une machine du réseau virtuel. Vous pouvez également modifier les liens entre les machines.
     users : Permet d'ajouter ou d'enlever un utilisateur, de lui donner les droits d'accès à une ou plusieurs machines, et de lui fixer un mot de passe.
     afinger : Permet de renseigner les informations complémentaires sur l'utilisateur.
 

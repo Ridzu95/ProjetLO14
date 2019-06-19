@@ -289,6 +289,7 @@ function Prompt {
 			"afinger") afingerCommand $1 $2 ;;
       "host") manageHostCommand $1 $2 ;;
       "users") manageUserCommand $1 $2 ;;
+			"clear") clear; Prompt $1 $2 ;;
       "disconnect") disconnectCommand $1 $2 ;;
       *) helpCommand $1 $2 ;;
     esac
@@ -304,7 +305,8 @@ function Prompt {
       "passwd") passwdCommand $1 $2 ;;
       "finger") fingerCommand $1 $2 ;;
 			"write") writeCommand $1 $2 $arg2 ;; 
-      "disconnect") disconnectCommand $1 $2 ;;
+      "clear") clear; Prompt $1 $2 ;;
+			"disconnect") disconnectCommand $1 $2 ;;
       *) helpCommand $1 $2 ;;
     esac
   fi
@@ -476,25 +478,25 @@ function afingerCommand {
 		Age : $age
     Tél. : $tel
 		"
-		read -p "Quelles informations souhaitez-vous modifier ? ( nom | age | phone ) : " afingerarg1 afingerarg2 afingerarg3
-    if [[ $afingerarg1 == "nom" ]] || [[ $afingerarg2 == "nom" ]] || [[ $afingerarg3 == "nom" ]]; then
+		read -p "Quelles informations souhaitez-vous modifier ? ( name | age | phone ) : " afingerarg1 afingerarg2 afingerarg3
+    if [[ $afingerarg1 == "name" ]] || [[ $afingerarg2 == "name" ]] || [[ $afingerarg3 == "name" ]]; then
       read -p "Entrez le nouveau nom de l'utilisateur : " newName
       sed -i "s/$nom/$newName/" infos.txt
-    else
-      echo "Argument vide ou n'existe pas."
+			echo "Nom de l'utilisateur modifié"
     fi
     if [[ $afingerarg1 == "age" ]] || [[ $afingerarg2 == "age" ]] || [[ $afingerarg3 == "age" ]]; then
       read -p "Entrez l'âge de l'utilisateur : " newAge
       sed -i "s/$age/$newAge/" infos.txt
-    else
-      echo "Argument vide ou n'existe pas."
-    fi
+			echo "Age de l'utilisateur modifié"
+		fi
     if [[ $afingerarg1 == "phone" ]] || [[ $afingerarg2 == "phone" ]] || [[ $afingerarg3 == "phone" ]]; then
       read -p "Entrez le numéro de téléphone de l'utilisateur : " newPhone
       sed -i "s/$tel/$newPhone/" infos.txt
-    else
-      echo "Argument vide ou n'existe pas."
+			echo "Numéro de téléphone de l'utilisateur modifié"
     fi
+		if [[ ! $afingerarg1 =~ (name|age|phone) ]] && [[ ! $afingerarg2 =~ (name|age|phone) ]] && [[ ! $afingerarg3 =~ (name|age|phone) ]]; then
+			echo "Argument vide ou n'existe pas."
+		fi
     Prompt $1 $2
 	fi
 }

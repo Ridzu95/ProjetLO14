@@ -43,13 +43,7 @@ function checkParameters {
       checkParameters $1 $2 $3 $4
     fi
   elif [[ $1 -eq 1 && $2 == 'help' ]]; then
-    echo "
-    Deux utilisations :
-
-    Mode connect : vous permet de vous connecter à une machine du réseau virtuel --> rvsh -connect [machine] [utilisateur]
-    Mode admin : vous permet d'éditer la configuration du réseau virtuel --> rvsh -admin
-    "
-    
+    cat help.txt
   else
     echo "Mauvaise utilisation de la commande. Tapez 'rvsh help' pour plus d'informations"
   fi

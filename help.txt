@@ -1,0 +1,26 @@
+
+_________________
+                    __  
+   ______   _______/ /_ 
+  / ___/ | / / ___/ __ \
+ / /   | |/ (__  ) / / /  by Ridzu & Agnou
+/_/    |___/____/_/ /_/ 
+
+Mode utilisateur :
+
+  rvsh -connect [machine] [user]
+
+      Vous permet de vous connecter à une machine et d'y utiliser les commandes associées.
+      Mot de passe requis.
+      Tapez 'help' dans une machine pour obtenir la liste des commandes possibles.
+
+Mode admin :
+
+  rvsh -admin
+
+      Vous permet d'accéder au mode admin de rvsh.
+      Mot de passe requis
+      Pour l'administration des machines et des utilisateurs.
+
+_______________
+                  

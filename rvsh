@@ -534,7 +534,7 @@ Les commandes suivantes sont à votre disposition :"
 		else
 			echo "who, rusers, rhost, connect, su, passwd, finger, write, clear, host, users, afinger, disconnect."
 		fi
-		echo "Pour en savoir plus sur une commande en particulier, veuillez taper \"help \[commande\]\"
+		echo "Pour en savoir plus sur une commande en particulier, veuillez taper \"help [commande]\"
 		" ;;
 		"who") echo "
 WHO

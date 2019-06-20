@@ -276,7 +276,7 @@ function Prompt {
   trap "" 2
   trap "" 20
   if [[ $adminMode == 1 ]]; then
-    read -p "$(echo -e $BOLD$YELLOW"rvsh"$RESET "> ")" userInput
+    read -p "$(echo -e $BOLD$YELLOW"rvsh"$RESET "> ")" userInput arg2
     case $userInput in
       "") Prompt $1 $2 ;;
       "who") whoCommand $1 $2 ;;
@@ -291,7 +291,7 @@ function Prompt {
       "users") manageUserCommand $1 $2 ;;
 			"clear") clear; Prompt $1 $2 ;;
       "disconnect") disconnectCommand $1 $2 ;;
-      *) helpCommand $1 $2 ;;
+      *) helpCommand $1 $2 $arg2 ;;
     esac
   else
     read -p "$(echo -e $BOLD$YELLOW"$2@$1"$RESET "> " )" userInput arg2
@@ -307,7 +307,7 @@ function Prompt {
 			"write") writeCommand $1 $2 $arg2 ;; 
       "clear") clear; Prompt $1 $2 ;;
 			"disconnect") disconnectCommand $1 $2 ;;
-      *) helpCommand $1 $2 ;;
+      *) helpCommand $1 $2 $arg2 ;;
     esac
   fi
 }
@@ -532,26 +532,137 @@ function writeCommand {
 }
 
 function helpCommand {
-  echo "
-  Commandes à votre disposition sur cette machine :
-  
-  who : Cette commande permet d’accéder à l’ensemble des utilisateurs connectés sur la machine.
-  rusers : Cette commande permet d’accéder à la liste des utilisateurs connectés sur le réseau.
-  rhost : Cette commande doit renvoyer la liste des machines rattachées à la machine. 
-  connect : Cette commande permet à l’utilisateur de se connecter à une autre machine du réseau.
-  su : Cette commande permet de changer d'utilisateur sur cette machine.
-  passwd : Cette commande permet de changer de mot de passe sur l'ensemble du réseau virtuel.
-  finger : Cette commande affiche les informations complémentaires de l'utilisateur.
-  write : Cette commande permet d'envoyer un message à un utilisateur. A utiliser avec le format \"write nom_utilisateur@nom_machine\"
-  disconnect : Cette commande permet de se déconnecter.
-  "
-  if [[ $adminMode == 1 ]]; then
-    echo "
-    host : Permet d'ajouter ou d'enlever une machine du réseau virtuel. Vous pouvez également modifier les liens entre les machines.
-    users : Permet d'ajouter ou d'enlever un utilisateur, de lui donner les droits d'accès à une ou plusieurs machines, et de lui fixer un mot de passe.
-    afinger : Permet de renseigner les informations complémentaires sur l'utilisateur.
-	  "
-  fi
+	case $3 in
+		"") echo "
+Les commandes suivantes sont à votre disposition :"
+		if [[ $adminMode == 0 ]]; then
+			echo "who, rusers, rhost, connect, su, passwd, finger, write, clear, disconnect."
+		else
+			echo "who, rusers, rhost, connect, su, passwd, finger, write, clear, host, users, afinger, disconnect."
+		fi
+		echo "Pour en savoir plus sur une commande en particulier, veuillez taper \"help \[commande\]\"
+		" ;;
+		"who") echo "
+WHO
+
+INVOCATION
+			who
+
+DESCRIPTION
+			Cette commande permet d'accéder à l'ensemble des utilisateurs connectés sur cette machine. Elle vous renverra le nom, l'heure et la date de connexion de chacun de ces utilisateurs.
+		" ;;
+		"rusers") echo "
+RUSERS
+
+INVOCATION
+			rusers
+
+DESCRIPTION
+			Cette commande permet d'accéder à l'ensemble des utilisateurs connectés sur le réseau. Elle vous renverra le nom de chaque utilisateur, la machine sur laquelle il est connecté, l'heure et la date de sa connexion.
+		" ;;
+		"rhost") echo "
+RHOST
+
+INVOCATION
+			rhost
+
+DESCRIPTION
+			Cette commande renvoie la liste des machines rattachées à celle-ci.
+		" ;;
+		"connect") echo "
+CONNECT
+
+INVOCATION
+			connect
+
+DESCRIPTION
+			Cette commande vous permet de vous connecter à une autre machine du réseau. Un message d'erreur vous sera renvoyé si votre machine n'est pas reliée à celle à laquelle vous voulez vous connecter. Il est alors conseillé d'exécuter la commande rhost afin de connaître la liste des machines auxquelles votre machine est connectés.
+		" ;;
+		"su") echo "
+SU
+
+INVOCATION
+			su
+
+DESCRIPTION
+			Cette commande vous permet de changer d'utilisateur.
+		" ;;
+		"passwd") echo "
+PASSWD
+
+INVOCATION
+			passwd
+
+DESCRIPTION
+			Cette commande vous permet de changer de mot de passe (sur l'ensemble du réseau virtuel).
+		" ;;
+		"finger") echo "
+FINGER 
+
+INVOCATION
+			finger
+
+DESCRIPTION
+			Cette commande renvoie des éléments complémentaires de votre profil utilisateur (nom, âge, numéro de téléphone...).
+		" ;;
+		"write") echo "
+WRITE
+
+INVOCATION
+			write [utilisateur]@[machine]
+
+DESCRIPTION
+			Cette commande vous permet d'envoyer un message à utilisateur connecté sur une machine du réseau.
+		" ;;
+		"host") echo "
+HOST
+
+INVOCATION
+			host
+
+DESCRIPTION
+			Cette commande vous permet d'ajouter ou d'enlever une machine au réseau virtuel, et de fixer les liens entre chaque machine du réseau.
+		" ;;
+		"users") echo "
+USERS
+
+INVOCATION
+			users
+
+DESCRIPTION
+			Cette commande vous permet d'ajouter ou d'enlever un utilisateur, de lui donner les droits d'accès à une ou plusieurs machines du réseau et de lui fixer un mot de passe.
+		" ;;
+		"afinger") echo "
+AFINGER
+
+INVOCATION
+			afinger
+
+DESCRIPTION
+			Cette commande vous permet de renseigner les informations comlémentaires sur l'utilisateur (informations auxquelles l'utilisateur a accès en lecture seule avec la commande finger dans le mode connect).
+		" ;;
+		"clear") echo "
+CLEAR
+
+INVOCATION
+			clear
+
+DESCRIPTION
+			Cette commande vous permet d'effacer à l'écran les résultats des commandes précédentes, pour obtenir un écran vide avec votre prompt en haut à gauche.
+		" ;;
+		"disconnect") echo "
+DISCONNECT
+
+INVOCATION
+			disconnect
+
+DESCRIPTION
+			Cette commande vous permet de vous déconnecter de la machine et du réseau virtuel.
+		" ;;
+		*) echo "
+Cette commande n'existe pas.
+		" ;;
+	esac
   Prompt $1 $2
 }
 
